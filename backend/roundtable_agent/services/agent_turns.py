@@ -10,7 +10,7 @@ from roundtable_agent.agents.research import ResearchContext, build_research_age
 from roundtable_agent.config import Settings, get_settings
 from roundtable_agent.model_selection import model_for_thread
 from roundtable_agent.services.slack import SlackService
-from roundtable_agent.slack.tool_stream import ToolStream
+from roundtable_agent.slack.tool_plan import ToolCallTracker
 
 logger = logging.getLogger(__name__)
 
@@ -98,20 +98,22 @@ async def _run_agent(
         "configurable": {"thread_id": thread_key},
         "recursion_limit": settings.recursion_limit,
     }
-    tool_stream = ToolStream()
+    tracker = ToolCallTracker()
     plan_ts: str | None = None
+    use_plan_blocks = True
 
-    async def refresh_tool_activity(*, done: bool = False) -> None:
-        nonlocal plan_ts
-        if not settings.slack_stream_tools or not tool_stream.order:
+    async def refresh_tool_plan(*, done: bool = False) -> None:
+        nonlocal plan_ts, use_plan_blocks
+        if not settings.slack_stream_tools or not tracker.has_calls():
             return
-        plan_ts = await asyncio.to_thread(
-            slack.post_or_update_tool_activity,
+        plan_ts, use_plan_blocks = await asyncio.to_thread(
+            slack.post_or_update_tool_plan,
             channel=channel,
             thread_ts=thread_ts,
-            lines=tool_stream.lines(),
+            calls=tracker.get_calls(),
+            title="Web research (done)" if done else "Web research",
             message_ts=plan_ts,
-            done=done,
+            use_plan_blocks=use_plan_blocks,
         )
 
     async with asyncio.timeout(settings.run_timeout_seconds):
@@ -121,11 +123,11 @@ async def _run_agent(
             context=ResearchContext(model=model_id),
             version="v2",
         ):
-            if tool_stream.apply(event):
-                await refresh_tool_activity()
+            if tracker.apply_sse("events", event):
+                await refresh_tool_plan()
 
-    if tool_stream.order:
-        await refresh_tool_activity(done=True)
+    if tracker.has_calls():
+        await refresh_tool_plan(done=True)
 
     state = await graph.aget_state(config)
     reply = _last_ai_text(dict(state.values))

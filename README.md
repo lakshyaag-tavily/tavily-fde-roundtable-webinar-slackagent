@@ -18,7 +18,7 @@ LangChain Deep Agent (in-process LangGraph + in-memory thread history)
         ├── Tavily search
         └── Tavily extract
         │
-        ├── live tool events ──► updated Slack "Web research" activity
+        ├── live tool events ──► Slack plan/task_card stream with sources
         └── final answer ──────► Slack thread reply
 ```
 

@@ -47,8 +47,7 @@ def build_home_view(*, user_id: str) -> dict[str, Any]:
         options[0],
     )
     prompt_lines = "\n".join(
-        f"• *{prompt['title']}* — _{prompt['message']}_"
-        for prompt in SUGGESTED_PROMPTS
+        f"• *{prompt['title']}* — _{prompt['message']}_" for prompt in SUGGESTED_PROMPTS
     )
     return {
         "type": "home",

@@ -9,8 +9,8 @@ roundtable_agent/
   model_selection.py     in-memory user defaults and thread binding
   services/agent_turns.py
                          in-process graph execution + tool event streaming
-  services/slack.py      Slack status, tool updates, and final replies
-  slack/                 event filters, model command, and formatting helpers
+  services/slack.py      Slack status, plan/task-card updates, final replies
+  slack/                 event filters, model command, rich tool-stream helpers
 ```
 
 Run with `uv run roundtable-agent serve --reload`.

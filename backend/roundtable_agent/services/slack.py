@@ -10,6 +10,7 @@ from slack_sdk.errors import SlackApiError
 
 from roundtable_agent.config import Settings, get_settings
 from roundtable_agent.slack.formatting import markdown_to_slack
+from roundtable_agent.slack.tool_plan import ActiveToolCall, tool_plan_blocks
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,27 @@ class SlackService:
             logger.exception("chat.postMessage failed: %s", exc.response.get("error"))
             raise
 
+    def update_message(
+        self,
+        *,
+        channel: str,
+        ts: str,
+        text: str,
+        blocks: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        try:
+            return dict(
+                self.client.chat_update(
+                    channel=channel,
+                    ts=ts,
+                    text=text,
+                    blocks=blocks,
+                ).data
+            )
+        except SlackApiError as exc:
+            logger.exception("chat.update failed: %s", exc.response.get("error"))
+            raise
+
     def post_agent_reply(self, *, channel: str, text: str, thread_ts: str) -> None:
         self.post_message(
             channel=channel,
@@ -72,30 +94,85 @@ class SlackService:
                 "assistant status unavailable: %s", exc.response.get("error")
             )
 
-    def post_or_update_tool_activity(
+    def post_or_update_tool_plan(
         self,
         *,
         channel: str,
         thread_ts: str,
-        lines: list[str],
-        message_ts: str | None,
-        done: bool = False,
-    ) -> str | None:
-        title = "Web research (done)" if done else "Web research"
-        body = "\n".join(lines) or "_Waiting for tools…_"
-        text = f"{title}\n{body}"[:3000]
-        blocks = [
+        calls: list[ActiveToolCall],
+        title: str = "Web research",
+        message_ts: str | None = None,
+        use_plan_blocks: bool = True,
+    ) -> tuple[str | None, bool]:
+        """Render Slack plan/task cards, falling back to ordinary blocks."""
+        fallback_lines = self._fallback_tool_lines(calls)
+        text = (title + "\n" + "\n".join(fallback_lines))[:3000]
+
+        if use_plan_blocks:
+            ts = self._post_or_update_blocks(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=text,
+                blocks=tool_plan_blocks(calls, title=title, show_details=True),
+                message_ts=message_ts,
+            )
+            if ts is not None:
+                return ts, True
+            logger.warning("plan/task_card blocks rejected; using section fallback")
+
+        body = "\n".join(fallback_lines) or "_Waiting for tools…_"
+        fallback_blocks = [
             {
                 "type": "context",
                 "elements": [
-                    {"type": "mrkdwn", "text": f":globe_with_meridians: *{title}*"}
+                    {
+                        "type": "mrkdwn",
+                        "text": f":globe_with_meridians: *{title}*",
+                    }
                 ],
             },
             {"type": "section", "text": {"type": "mrkdwn", "text": body[:2900]}},
         ]
+        ts = self._post_or_update_blocks(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=text,
+            blocks=fallback_blocks,
+            message_ts=message_ts,
+        )
+        return ts, False
+
+    @staticmethod
+    def _fallback_tool_lines(calls: list[ActiveToolCall]) -> list[str]:
+        lines: list[str] = []
+        for call in calls:
+            prefix = (
+                "→"
+                if call.status == "in_progress"
+                else "✗"
+                if call.status == "error"
+                else "✓"
+            )
+            line = f"{prefix} *{call.display_title()}*"
+            if details := call.details_text():
+                line += f" · {details}"
+            if output := call.output_text():
+                line += f" → {output}"
+            lines.append(line)
+        return lines
+
+    def _post_or_update_blocks(
+        self,
+        *,
+        channel: str,
+        thread_ts: str,
+        text: str,
+        blocks: list[dict[str, Any]],
+        message_ts: str | None,
+    ) -> str | None:
         try:
             if message_ts:
-                self.client.chat_update(
+                self.update_message(
                     channel=channel,
                     ts=message_ts,
                     text=text,
@@ -108,7 +185,7 @@ class SlackService:
                 text=text,
                 blocks=blocks,
             )
-            return str(response.get("ts")) if response.get("ts") else None
-        except SlackApiError as exc:
-            logger.warning("tool activity update failed: %s", exc.response.get("error"))
-            return message_ts
+            return str(response["ts"]) if response.get("ts") else None
+        except Exception:
+            logger.exception("Failed to post/update tool activity")
+            return None

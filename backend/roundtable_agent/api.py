@@ -122,23 +122,44 @@ def _build_bolt_app(settings: Settings) -> AsyncApp:
             view=build_home_view(user_id=user_id),
         )
 
-    async def handle_app_home_opened(
-        event: dict[str, Any], client: Any, ack
-    ) -> None:  # type: ignore[no-untyped-def]
+    async def _set_suggested_prompts(client: Any, channel_id: str) -> None:
+        # Agent View still requires thread_ts in practice; omitting it returns
+        # internal_error. Use the latest DM message when one exists.
+        try:
+            history = await client.conversations_history(channel=channel_id, limit=1)
+        except SlackApiError as exc:
+            logger.warning(
+                "Could not load DM history for suggested prompts: %s",
+                exc.response.get("error"),
+            )
+            return
+        messages = history.get("messages") or []
+        if not messages:
+            return
+        thread_ts = str(messages[0].get("thread_ts") or messages[0].get("ts") or "")
+        if not thread_ts:
+            return
+        try:
+            await client.assistant_threads_setSuggestedPrompts(
+                channel_id=channel_id,
+                thread_ts=thread_ts,
+                title=SUGGESTED_PROMPTS_TITLE,
+                prompts=SUGGESTED_PROMPTS,
+            )
+        except SlackApiError as exc:
+            logger.warning(
+                "Could not set dynamic suggested prompts: %s",
+                exc.response.get("error"),
+            )
+
+    async def handle_app_home_opened(event: dict[str, Any], client: Any, ack) -> None:  # type: ignore[no-untyped-def]
         await ack()
         tab = str(event.get("tab") or "home")
         try:
             if tab == "messages":
                 channel_id = str(event.get("channel") or "")
                 if channel_id:
-                    try:
-                        await client.assistant_threads_setSuggestedPrompts(
-                            channel_id=channel_id,
-                            title=SUGGESTED_PROMPTS_TITLE,
-                            prompts=SUGGESTED_PROMPTS,
-                        )
-                    except SlackApiError:
-                        logger.warning("Could not set dynamic suggested prompts")
+                    await _set_suggested_prompts(client, channel_id)
                 return
             user_id = str(event.get("user") or "")
             if user_id:
@@ -146,9 +167,7 @@ def _build_bolt_app(settings: Settings) -> AsyncApp:
         except Exception:
             logger.exception("Failed handling app_home_opened tab=%s", tab)
 
-    async def handle_select_model(
-        ack, body: dict[str, Any], client: Any
-    ) -> None:  # type: ignore[no-untyped-def]
+    async def handle_select_model(ack, body: dict[str, Any], client: Any) -> None:  # type: ignore[no-untyped-def]
         await ack()
         user_id = str((body.get("user") or {}).get("id") or "")
         action = (body.get("actions") or [{}])[0]
