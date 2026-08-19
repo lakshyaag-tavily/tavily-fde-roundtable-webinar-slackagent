@@ -1,0 +1,77 @@
+{
+  "display_information": {
+    "name": "Scout",
+    "description": "A research assistant that searches the web, reads sources, and answers questions in Slack.",
+    "background_color": "#111827",
+    "long_description": "Scout is a research assistant for Slack. Ask a question in a DM or mention Scout in a channel thread, and it will search the web, pull from primary sources, and post a concise answer with citations. Progress updates appear as it works so you can follow along."
+  },
+  "features": {
+    "app_home": {
+      "home_tab_enabled": true,
+      "messages_tab_enabled": true,
+      "messages_tab_read_only_enabled": false
+    },
+    "bot_user": {
+      "display_name": "Scout",
+      "always_online": true
+    },
+    "agent_view": {
+      "agent_description": "Answers questions and researches current information from the web.",
+      "suggested_prompts": [
+        {
+          "title": "Research a current topic",
+          "message": "What are the most important recent developments in AI agents?"
+        },
+        {
+          "title": "Compare approaches",
+          "message": "Compare current approaches to evaluating web research agents."
+        },
+        {
+          "title": "Read official sources",
+          "message": "Find the latest official Anthropic API changelog and summarize what changed."
+        }
+      ]
+    },
+    "slash_commands": [
+      {
+        "command": "/agent-model",
+        "url": "https://YOUR-TUNNEL.trycloudflare.com/events/slack",
+        "description": "Choose the model used for new agent threads",
+        "usage_hint": "list | status",
+        "should_escape": false
+      }
+    ]
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "app_mentions:read",
+        "assistant:write",
+        "channels:history",
+        "chat:write",
+        "commands",
+        "groups:history",
+        "im:history",
+        "im:read",
+        "im:write",
+        "mpim:history",
+        "users:read"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "request_url": "https://YOUR-TUNNEL.trycloudflare.com/events/slack",
+      "bot_events": [
+        "app_context_changed",
+        "app_home_opened",
+        "app_mention",
+        "message.im"
+      ]
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false,
+    "is_mcp_enabled": false
+  }
+}

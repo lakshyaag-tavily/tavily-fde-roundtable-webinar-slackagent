@@ -1,0 +1,10 @@
+services:
+  agent:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.api
+    env_file:
+      - path: ./backend/.env
+        required: false
+    ports:
+      - "8000:8000"
