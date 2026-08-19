@@ -32,14 +32,16 @@ and reset when the process restarts.
 ```bash
 cd fde-roundtable-webinar-slackagent/backend
 cp .env.example .env
-# Fill in LANGSMITH_API_KEY and TAVILY_API_KEY first.
+# Fill in OPENAI_API_KEY, NEBIUS_API_KEY, and TAVILY_API_KEY first.
 uv sync
 ```
 
-Model calls use the LangSmith LLM Gateway. The demo exposes two model aliases:
+Model calls use `ChatOpenAI` and `ChatNebius` directly. The demo exposes these
+model aliases:
 
-- `gpt` → `openai/gpt-5.6-sol` (default)
-- `opus` → `anthropic/claude-opus-5`
+- `gpt` → `openai/gpt-5.6-sol` (default, ChatOpenAI)
+- `kimi` → `nebius:moonshoot/Kimi-K3` (ChatNebius)
+- `nemotron` → `nebius:nvidia/Nemotron-3_5-Lightning` (ChatNebius)
 
 ## 2. Run locally
 
@@ -85,7 +87,8 @@ The manifest includes `/agent-model`:
 ```text
 /agent-model list
 /agent-model gpt
-/agent-model opus
+/agent-model kimi
+/agent-model nemotron
 /agent-model status
 ```
 

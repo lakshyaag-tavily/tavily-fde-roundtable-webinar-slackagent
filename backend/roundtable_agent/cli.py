@@ -7,6 +7,11 @@ import typer
 app = typer.Typer(help="Roundtable webinar Slack agent")
 
 
+@app.callback()
+def main() -> None:
+    """Run the roundtable webinar Slack agent."""
+
+
 @app.command()
 def serve(
     host: str = typer.Option("127.0.0.1", help="Bind host."),

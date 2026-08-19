@@ -20,30 +20,38 @@ from roundtable_agent.agents.prompts import research_system_prompt
 from roundtable_agent.config import get_settings
 from roundtable_agent.models import DEFAULT_MODEL, resolve_model
 
-_GATEWAY_BASE_URL = "https://gateway.smith.langchain.com/v1"
-
 
 @dataclass
 class ResearchContext:
-    """Per-run LangSmith LLM Gateway model id."""
+    """Per-run model id used for thread-level swapping."""
 
     model: str = DEFAULT_MODEL
 
 
-def _gateway_chat_model(requested_model: str):
-    from langchain_openai import ChatOpenAI
+def _provider_and_name(model_id: str) -> tuple[str, str]:
+    provider, _, name = model_id.partition("/")
+    if not name:
+        return "openai", provider
+    return provider, name
 
+
+def _chat_model(requested_model: str):
     model_id = resolve_model(requested_model) or DEFAULT_MODEL
-    _ensure_harness(model_id)
-    key = os.environ.get("LANGSMITH_API_KEY")
-    if not key:
-        raise RuntimeError(
-            "LANGSMITH_API_KEY is required for the LangSmith LLM Gateway"
-        )
-    base_url = (
-        os.environ.get("LANGSMITH_GATEWAY_BASE_URL") or _GATEWAY_BASE_URL
-    ).rstrip("/")
-    return ChatOpenAI(model=model_id, api_key=key, base_url=base_url)
+    provider, name = _provider_and_name(model_id)
+    _ensure_harness(provider)
+    if provider == "openai":
+        from langchain_openai import ChatOpenAI
+
+        if not os.environ.get("OPENAI_API_KEY"):
+            raise RuntimeError("OPENAI_API_KEY is required for ChatOpenAI")
+        return ChatOpenAI(model=name, use_responses_api=True)
+    if provider == "nebius":
+        from langchain_nebius import ChatNebius
+
+        if not os.environ.get("NEBIUS_API_KEY"):
+            raise RuntimeError("NEBIUS_API_KEY is required for ChatNebius")
+        return ChatNebius(model=name)
+    raise RuntimeError(f"Unsupported model provider: {provider}")
 
 
 def _requested_model_from_request(request: ModelRequest) -> str:
@@ -67,9 +75,7 @@ async def _swap_selected_model(
     handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
 ) -> ModelResponse:
     return await handler(
-        request.override(
-            model=_gateway_chat_model(_requested_model_from_request(request))
-        )
+        request.override(model=_chat_model(_requested_model_from_request(request)))
     )
 
 
@@ -88,10 +94,10 @@ _harness_ids: set[str] = set()
 _harness_profile: object | None = None
 
 
-def _ensure_harness(requested_model: str) -> None:
+def _ensure_harness(provider: str) -> None:
     """Disable Deep Agent extras so this agent exposes only Tavily tools."""
     global _harness_profile
-    if requested_model in _harness_ids:
+    if provider in _harness_ids:
         return
 
     from deepagents import (
@@ -118,10 +124,13 @@ def _ensure_harness(requested_model: str) -> None:
                 }
             ),
         )
-    # All gateway models use ChatOpenAI's OpenAI-compatible client, so the
-    # resolved provider is ``openai`` even for an anthropic/... gateway id.
-    register_harness_profile("openai", _harness_profile)
-    _harness_ids.add(requested_model)
+    # ChatNebius subclasses the OpenAI chat client, so Deep Agents may resolve
+    # it as either ``nebius`` or ``openai``. Register both.
+    for profile_id in {provider, "openai", "nebius"}:
+        if profile_id in _harness_ids:
+            continue
+        register_harness_profile(profile_id, _harness_profile)
+        _harness_ids.add(profile_id)
 
 
 def build_research_agent():
@@ -132,9 +141,8 @@ def build_research_agent():
         raise RuntimeError("deepagents is not installed; run `uv sync`") from exc
 
     settings = get_settings()
-    _ensure_harness(DEFAULT_MODEL)
     return create_deep_agent(
-        model=_gateway_chat_model(DEFAULT_MODEL),
+        model=_chat_model(DEFAULT_MODEL),
         tools=_tavily_tools(),
         system_prompt=research_system_prompt(),
         middleware=[

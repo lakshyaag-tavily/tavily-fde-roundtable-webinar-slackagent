@@ -1,4 +1,4 @@
-"""The two model choices exposed by the webinar demo."""
+"""The model choices exposed by the webinar demo."""
 
 from __future__ import annotations
 
@@ -12,8 +12,11 @@ class ModelOption:
 
 
 MODELS = {
-    "gpt": ModelOption("openai/gpt-5.6-sol", "GPT-5.6 Sol"),
-    "opus": ModelOption("anthropic/claude-opus-5", "Claude Opus 5"),
+    "gpt": ModelOption("openai/gpt-5.6-luna", "GPT-5.6 Luna"),
+    "kimi": ModelOption("nebius/moonshoot/Kimi-K3", "Kimi K3"),
+    "nemotron": ModelOption(
+        "nebius/nvidia/Nemotron-3_5-Lightning", "Nemotron 3.5 Lightning"
+    ),
 }
 DEFAULT_MODEL = MODELS["gpt"].id
 SLASH_COMMAND = "/agent-model"
@@ -23,8 +26,6 @@ def resolve_model(value: str | None) -> str | None:
     text = (value or "").strip()
     if not text:
         return None
-    if text.startswith("langsmith:"):
-        text = text.removeprefix("langsmith:")
     if ":" in text and "/" not in text.split(":", 1)[0]:
         provider, _, name = text.partition(":")
         text = f"{provider}/{name}"

@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 _AGENT_LOADING_MESSAGES = [
     "Understanding the question…",
-    "Searching the web when needed…",
+    "Searching the web…",
+    "Taking a closer look…",
     "Preparing a concise answer…",
 ]
 _seen_events: set[str] = set()

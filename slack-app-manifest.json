@@ -28,7 +28,7 @@
         },
         {
           "title": "Read official sources",
-          "message": "Find the latest official Anthropic API changelog and summarize what changed."
+          "message": "Find the latest official LangGraph release notes and summarize what changed."
         }
       ]
     },
@@ -68,6 +68,10 @@
         "app_mention",
         "message.im"
       ]
+    },
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "https://YOUR-TUNNEL.trycloudflare.com/events/slack"
     },
     "org_deploy_enabled": false,
     "socket_mode_enabled": false,

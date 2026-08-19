@@ -11,6 +11,7 @@ from slack_sdk.errors import SlackApiError
 
 from roundtable_agent.config import Settings, get_settings
 from roundtable_agent.logging_config import configure_app_logging
+from roundtable_agent.model_selection import set_preferred_model
 from roundtable_agent.models import SLASH_COMMAND
 from roundtable_agent.services.agent_turns import handle_slack_message
 from roundtable_agent.slack.events import (
@@ -21,6 +22,7 @@ from roundtable_agent.slack.events import (
     should_ignore_message_event,
 )
 from roundtable_agent.slack.home import (
+    SELECT_MODEL_ACTION_ID,
     SUGGESTED_PROMPTS,
     SUGGESTED_PROMPTS_TITLE,
     build_home_view,
@@ -114,8 +116,17 @@ def _build_bolt_app(settings: Settings) -> AsyncApp:
             settings=settings,
         )
 
-    async def handle_app_home_opened(event: dict[str, Any], client: Any) -> None:
-        tab = str(event.get("tab") or "")
+    async def _publish_home(client: Any, user_id: str) -> None:
+        await client.views_publish(
+            user_id=user_id,
+            view=build_home_view(user_id=user_id),
+        )
+
+    async def handle_app_home_opened(
+        event: dict[str, Any], client: Any, ack
+    ) -> None:  # type: ignore[no-untyped-def]
+        await ack()
+        tab = str(event.get("tab") or "home")
         try:
             if tab == "messages":
                 channel_id = str(event.get("channel") or "")
@@ -128,26 +139,51 @@ def _build_bolt_app(settings: Settings) -> AsyncApp:
                         )
                     except SlackApiError:
                         logger.warning("Could not set dynamic suggested prompts")
-            elif tab == "home" and event.get("user"):
-                await client.views_publish(
-                    user_id=str(event["user"]),
-                    view=build_home_view(user_id=str(event["user"])),
-                )
+                return
+            user_id = str(event.get("user") or "")
+            if user_id:
+                await _publish_home(client, user_id)
         except Exception:
             logger.exception("Failed handling app_home_opened tab=%s", tab)
 
-    async def handle_model_command(command: dict[str, Any], respond) -> None:  # type: ignore[no-untyped-def]
+    async def handle_select_model(
+        ack, body: dict[str, Any], client: Any
+    ) -> None:  # type: ignore[no-untyped-def]
+        await ack()
+        user_id = str((body.get("user") or {}).get("id") or "")
+        action = (body.get("actions") or [{}])[0]
+        alias = str(
+            ((action.get("selected_option") or {}).get("value"))
+            or action.get("value")
+            or ""
+        )
+        if not user_id or not alias:
+            return
+        try:
+            set_preferred_model(user_id, alias)
+            await _publish_home(client, user_id)
+        except Exception:
+            logger.exception("Failed to set Home tab model alias=%s", alias)
+
+    async def handle_model_command(command: dict[str, Any], respond, client) -> None:  # type: ignore[no-untyped-def]
         try:
             text = slash_result_from_command(command, settings=settings)
         except Exception:
             logger.exception("Failed %s", SLASH_COMMAND)
             text = "Could not update your default model. Try again?"
         await respond({"text": text, "response_type": "ephemeral"})
+        user_id = str(command.get("user_id") or "")
+        if user_id:
+            try:
+                await _publish_home(client, user_id)
+            except Exception:
+                logger.exception("Failed to refresh Home after %s", SLASH_COMMAND)
 
     bolt.event("message")(ack=just_ack, lazy=[handle_message])
     bolt.event("app_mention")(ack=just_ack, lazy=[handle_message])
-    bolt.event("app_home_opened")(ack=just_ack, lazy=[handle_app_home_opened])
+    bolt.event("app_home_opened")(handle_app_home_opened)
     bolt.event("app_context_changed")(just_ack)
+    bolt.action(SELECT_MODEL_ACTION_ID)(handle_select_model)
     bolt.command(SLASH_COMMAND)(ack=just_ack, lazy=[handle_model_command])
     return bolt
 
