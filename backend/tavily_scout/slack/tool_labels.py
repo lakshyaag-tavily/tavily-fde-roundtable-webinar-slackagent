@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urlparse
 
-from roundtable_agent.slack.progress import format_params, format_result_shape
+from tavily_scout.slack.progress import format_params, format_result_shape
 
 _DETAILS_MAX = 120
 _OUTPUT_MAX = 400

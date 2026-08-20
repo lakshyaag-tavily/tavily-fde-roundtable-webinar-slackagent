@@ -6,11 +6,11 @@ import asyncio
 import logging
 from typing import Any
 
-from roundtable_agent.agents.research import ResearchContext, build_research_agent
-from roundtable_agent.config import Settings, get_settings
-from roundtable_agent.model_selection import model_for_thread
-from roundtable_agent.services.slack import SlackService
-from roundtable_agent.slack.tool_plan import ToolCallTracker
+from tavily_scout.agents.research import ResearchContext, build_research_agent
+from tavily_scout.config import Settings, get_settings
+from tavily_scout.model_selection import model_for_thread
+from tavily_scout.services.slack import SlackService
+from tavily_scout.slack.tool_plan import ToolCallTracker
 
 logger = logging.getLogger(__name__)
 

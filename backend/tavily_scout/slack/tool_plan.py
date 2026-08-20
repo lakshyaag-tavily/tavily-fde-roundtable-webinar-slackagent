@@ -11,8 +11,8 @@ from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urlparse
 
-from roundtable_agent.slack.progress import format_params
-from roundtable_agent.slack.tool_labels import (
+from tavily_scout.slack.progress import format_params
+from tavily_scout.slack.tool_labels import (
     tool_details,
     tool_error,
     tool_output,

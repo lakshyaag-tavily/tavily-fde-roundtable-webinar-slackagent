@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from roundtable_agent.config import Settings
-from roundtable_agent.model_selection import preferred_model, set_preferred_model
-from roundtable_agent.models import MODELS, SLASH_COMMAND, model_label
+from tavily_scout.config import Settings
+from tavily_scout.model_selection import preferred_model, set_preferred_model
+from tavily_scout.models import MODELS, SLASH_COMMAND, model_label
 
 
 def apply_slash_command(*, user_id: str, text: str | None) -> str:

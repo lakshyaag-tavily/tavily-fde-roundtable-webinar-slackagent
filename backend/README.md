@@ -3,7 +3,7 @@
 One Python process contains the FastAPI/Slack Bolt edge and the Deep Agent.
 
 ```text
-roundtable_agent/
+tavily_scout/
   api.py                 Slack events, App Home, /agent-model
   agents/research.py     create_deep_agent + Tavily search/extract
   model_selection.py     in-memory user defaults and thread binding
@@ -13,4 +13,4 @@ roundtable_agent/
   slack/                 event filters, model command, rich tool-stream helpers
 ```
 
-Run with `uv run roundtable-agent serve --reload`.
+Run with `uv run tavily-scout serve --reload`.

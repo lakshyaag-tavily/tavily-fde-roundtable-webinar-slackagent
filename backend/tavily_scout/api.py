@@ -9,25 +9,25 @@ from slack_bolt.adapter.fastapi.async_handler import AsyncSlackRequestHandler
 from slack_bolt.async_app import AsyncApp
 from slack_sdk.errors import SlackApiError
 
-from roundtable_agent.config import Settings, get_settings
-from roundtable_agent.logging_config import configure_app_logging
-from roundtable_agent.model_selection import set_preferred_model
-from roundtable_agent.models import SLASH_COMMAND
-from roundtable_agent.services.agent_turns import handle_slack_message
-from roundtable_agent.slack.events import (
+from tavily_scout.config import Settings, get_settings
+from tavily_scout.logging_config import configure_app_logging
+from tavily_scout.model_selection import set_preferred_model
+from tavily_scout.models import SLASH_COMMAND
+from tavily_scout.services.agent_turns import handle_slack_message
+from tavily_scout.slack.events import (
     event_thread_ts,
     is_channel_or_group_message,
     research_text_from_event,
     should_ignore_app_mention_event,
     should_ignore_message_event,
 )
-from roundtable_agent.slack.home import (
+from tavily_scout.slack.home import (
     SELECT_MODEL_ACTION_ID,
     SUGGESTED_PROMPTS,
     SUGGESTED_PROMPTS_TITLE,
     build_home_view,
 )
-from roundtable_agent.slack.model_command import slash_result_from_command
+from tavily_scout.slack.model_command import slash_result_from_command
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +51,8 @@ async def _resolve_bot_identity(
 def _build_bolt_app(settings: Settings) -> AsyncApp:
     if not settings.slack_bot_token or not settings.slack_signing_secret:
         raise RuntimeError(
-            "ROUNDTABLE_AGENT_SLACK_BOT_TOKEN and "
-            "ROUNDTABLE_AGENT_SLACK_SIGNING_SECRET are required"
+            "TAVILY_SCOUT_SLACK_BOT_TOKEN and "
+            "TAVILY_SCOUT_SLACK_SIGNING_SECRET are required"
         )
 
     bolt = AsyncApp(

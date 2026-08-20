@@ -16,9 +16,9 @@ from langchain.agents.middleware import (
 from langchain_tavily import TavilyExtract, TavilySearch
 from langgraph.checkpoint.memory import InMemorySaver
 
-from roundtable_agent.agents.prompts import research_system_prompt
-from roundtable_agent.config import get_settings
-from roundtable_agent.models import DEFAULT_MODEL, resolve_model
+from tavily_scout.agents.prompts import research_system_prompt
+from tavily_scout.config import get_settings
+from tavily_scout.models import DEFAULT_MODEL, resolve_model
 
 
 @dataclass

@@ -20,15 +20,15 @@ def serve(
 ) -> None:
     import uvicorn
 
-    from roundtable_agent.logging_config import configure_app_logging
+    from tavily_scout.logging_config import configure_app_logging
 
     configure_app_logging()
     uvicorn.run(
-        "roundtable_agent.api:app",
+        "tavily_scout.api:app",
         host=host,
         port=port,
         reload=reload,
-        log_level=os.environ.get("ROUNDTABLE_AGENT_LOG_LEVEL", "info").lower(),
+        log_level=os.environ.get("TAVILY_SCOUT_LOG_LEVEL", "info").lower(),
     )
 
 

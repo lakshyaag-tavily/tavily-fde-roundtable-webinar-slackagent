@@ -38,7 +38,7 @@ Model aliases:
 
 ```bash
 cd backend
-uv run roundtable-agent serve --reload
+uv run tavily-scout serve --reload
 ```
 
 Check <http://127.0.0.1:8000/health>.

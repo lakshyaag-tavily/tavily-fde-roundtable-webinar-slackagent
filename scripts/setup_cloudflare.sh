@@ -29,7 +29,7 @@ if ! curl -sf "$HEALTH_URL" >/dev/null; then
   echo "API is not healthy at ${HEALTH_URL}"
   echo "Start the stack first:"
   echo "  docker compose up --build"
-  echo "  # or host API: cd backend && uv run roundtable-agent serve --reload"
+  echo "  # or host API: cd backend && uv run tavily-scout serve --reload"
   echo ""
   echo "After the API is up, run this script again."
   exit 1

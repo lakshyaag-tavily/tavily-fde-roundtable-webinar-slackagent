@@ -8,9 +8,9 @@ from typing import Any
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from roundtable_agent.config import Settings, get_settings
-from roundtable_agent.slack.formatting import markdown_to_slack
-from roundtable_agent.slack.tool_plan import ActiveToolCall, tool_plan_blocks
+from tavily_scout.config import Settings, get_settings
+from tavily_scout.slack.formatting import markdown_to_slack
+from tavily_scout.slack.tool_plan import ActiveToolCall, tool_plan_blocks
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class SlackService:
     def __init__(self, settings: Settings | None = None) -> None:
         settings = settings or get_settings()
         if not settings.slack_bot_token:
-            raise RuntimeError("ROUNDTABLE_AGENT_SLACK_BOT_TOKEN is not configured")
+            raise RuntimeError("TAVILY_SCOUT_SLACK_BOT_TOKEN is not configured")
         self.client = WebClient(token=settings.slack_bot_token)
 
     def post_message(

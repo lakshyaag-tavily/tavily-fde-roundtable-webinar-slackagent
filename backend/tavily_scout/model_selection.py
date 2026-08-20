@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from roundtable_agent.models import DEFAULT_MODEL, resolve_model
+from tavily_scout.models import DEFAULT_MODEL, resolve_model
 
 _user_models: dict[str, str] = {}
 _thread_models: dict[str, str] = {}

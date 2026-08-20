@@ -12,10 +12,10 @@ load_dotenv(BACKEND_ROOT / ".env", override=False)
 
 
 class Settings(BaseSettings):
-    """Runtime settings loaded from ``ROUNDTABLE_AGENT_*`` variables."""
+    """Runtime settings loaded from ``TAVILY_SCOUT_*`` variables."""
 
     model_config = SettingsConfigDict(
-        env_prefix="ROUNDTABLE_AGENT_",
+        env_prefix="TAVILY_SCOUT_",
         env_file=BACKEND_ROOT / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
