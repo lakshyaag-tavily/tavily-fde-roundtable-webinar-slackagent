@@ -1,47 +1,38 @@
-# Roundtable Webinar Slack Agent
+# Tavily Scout
 
-A deliberately small Slack Q&A bot for demonstrating the complete path from a
-Slack app manifest and public tunnel to a LangChain Deep Agent with web access.
-The agent has exactly two external tools: Tavily search and Tavily extract.
-
-## Architecture
+A research Slack agent backed by a LangChain Deep Agent. It has two tools: Tavily search and Tavily extract.
 
 ```text
 Slack DM or @mention
         │  Events API
         ▼
-FastAPI + Slack Bolt  ── immediate ack
+FastAPI + Slack Bolt
         │
         ▼
-LangChain Deep Agent (in-process LangGraph + in-memory thread history)
-        │
+LangChain Deep Agent
         ├── Tavily search
         └── Tavily extract
         │
-        ├── live tool events ──► Slack plan/task_card stream with sources
+        ├── live tool events ──► Slack plan/task cards
         └── final answer ──────► Slack thread reply
 ```
 
-There is no UI, product database, worker, webhook callback service, HubSpot,
-Confluence, Grain, or skills layer. Model preferences, thread/model bindings,
-conversation checkpoints, and event deduplication are intentionally in memory
-and reset when the process restarts.
+Model preferences, thread history, and event deduplication are stored in memory and reset when the process restarts.
 
 ## 1. Configure
 
 ```bash
-cd fde-roundtable-webinar-slackagent/backend
+cd backend
 cp .env.example .env
 # Fill in OPENAI_API_KEY, NEBIUS_API_KEY, and TAVILY_API_KEY first.
 uv sync
 ```
 
-Model calls use `ChatOpenAI` and `ChatNebius` directly. The demo exposes these
-model aliases:
+Model aliases:
 
-- `gpt` → `openai/gpt-5.6-sol` (default, ChatOpenAI)
-- `kimi` → `nebius:moonshoot/Kimi-K3` (ChatNebius)
-- `nemotron` → `nebius:nvidia/Nemotron-3_5-Lightning` (ChatNebius)
+- `gpt` → `openai/gpt-5.6-sol` (default)
+- `kimi` → `nebius:moonshoot/Kimi-K3`
+- `nemotron` → `nebius:nvidia/Nemotron-3_5-Lightning`
 
 ## 2. Run locally
 
@@ -66,8 +57,7 @@ From the repository root, with the agent already listening on port 8000:
 ./scripts/setup_cloudflare.sh
 ```
 
-Copy the generated HTTPS URL into both `url` fields in
-[`slack-app-manifest.json`](slack-app-manifest.json):
+Copy the generated HTTPS URL into both `url` fields in [`slack-app-manifest.json`](slack-app-manifest.json):
 
 ```text
 https://YOUR-TUNNEL.trycloudflare.com/events/slack
@@ -82,7 +72,7 @@ https://YOUR-TUNNEL.trycloudflare.com/events/slack
 5. Restart the agent.
 6. DM the bot or mention it in a channel.
 
-The manifest includes `/agent-model`:
+Switch models with `/agent-model`:
 
 ```text
 /agent-model list
@@ -92,15 +82,6 @@ The manifest includes `/agent-model`:
 /agent-model status
 ```
 
-A model choice applies to new threads. Existing threads remain bound to the
-model they started with.
+A model choice applies to new threads. Existing threads stay on the model they started with.
 
-## Suggested webinar prompt
-
-```text
-What changed in LangGraph recently? Use official sources and explain the three
-updates most relevant to teams building production research agents.
-```
-
-While Tavily runs, Slack shows live search/extract activity and source links.
-The final response lands in the same Slack thread.
+While Tavily runs, Slack shows live search/extract activity and source links. The final response lands in the same thread.

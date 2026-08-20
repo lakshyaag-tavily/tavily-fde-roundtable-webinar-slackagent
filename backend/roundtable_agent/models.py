@@ -1,4 +1,4 @@
-"""The model choices exposed by the webinar demo."""
+"""The model choices exposed by the agent."""
 
 from __future__ import annotations
 

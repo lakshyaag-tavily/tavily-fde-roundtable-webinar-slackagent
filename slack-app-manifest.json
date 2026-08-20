@@ -1,9 +1,9 @@
 {
   "display_information": {
-    "name": "Scout",
-    "description": "A research assistant that searches the web, reads sources, and answers questions in Slack.",
+    "name": "Tavily Scout",
+    "description": "A research Slack agent that searches the web, reads sources, and answers questions.",
     "background_color": "#111827",
-    "long_description": "Scout is a research assistant for Slack. Ask a question in a DM or mention Scout in a channel thread, and it will search the web, pull from primary sources, and post a concise answer with citations. Progress updates appear as it works so you can follow along."
+    "long_description": "Tavily Scout is a research Slack agent. Ask a question in a DM or mention Scout in a channel thread, and it will search the web, pull from primary sources, and post a concise answer with citations. Progress updates appear as it works so you can follow along."
   },
   "features": {
     "app_home": {

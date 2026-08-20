@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Roundtable Agent — Cloudflare quick tunnel for local Slack Events API testing.
+# Tavily Scout — Cloudflare quick tunnel for local Slack Events API testing.
 # Mirrors AI-FDE's setup_ngrok.sh, using cloudflared instead of ngrok.
 
 set -euo pipefail
@@ -8,7 +8,7 @@ PORT="${PORT:-8000}"
 HEALTH_URL="http://127.0.0.1:${PORT}/health"
 TUNNEL_TARGET="http://127.0.0.1:${PORT}"
 
-echo "Roundtable Agent — Cloudflare tunnel for Slack testing"
+echo "Tavily Scout — Cloudflare tunnel for Slack testing"
 echo "==============================================="
 
 if ! command -v cloudflared >/dev/null 2>&1; then

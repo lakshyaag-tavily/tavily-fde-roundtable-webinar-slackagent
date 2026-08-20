@@ -56,7 +56,7 @@ def build_home_view(*, user_id: str) -> dict[str, Any]:
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "Scout",
+                    "text": "Tavily Scout",
                     "emoji": True,
                 },
             },

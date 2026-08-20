@@ -1,1 +1,1 @@
-"""Roundtable webinar Slack research agent."""
+"""Tavily Scout research Slack agent."""

@@ -21,7 +21,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "Roundtable Research Agent"
+    app_name: str = "Tavily Scout"
     slack_bot_token: str | None = None
     slack_signing_secret: str | None = None
     slack_bot_user_id: str | None = None

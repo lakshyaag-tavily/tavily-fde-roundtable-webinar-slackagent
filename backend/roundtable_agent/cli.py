@@ -4,12 +4,12 @@ import os
 
 import typer
 
-app = typer.Typer(help="Roundtable webinar Slack agent")
+app = typer.Typer(help="Tavily Scout Slack agent")
 
 
 @app.callback()
 def main() -> None:
-    """Run the roundtable webinar Slack agent."""
+    """Run the Tavily Scout Slack agent."""
 
 
 @app.command()

@@ -1,4 +1,4 @@
-"""In-memory model defaults and per-thread binding for the demo."""
+"""In-memory model defaults and per-thread binding."""
 
 from __future__ import annotations
 

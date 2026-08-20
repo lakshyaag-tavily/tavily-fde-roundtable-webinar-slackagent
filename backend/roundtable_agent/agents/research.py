@@ -152,5 +152,5 @@ def build_research_agent():
         ],
         context_schema=ResearchContext,
         checkpointer=InMemorySaver(),
-        name="roundtable-slack-research-agent",
+        name="tavily-scout-slack-agent",
     )

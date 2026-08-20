@@ -1,4 +1,4 @@
-"""In-memory ``/agent-model`` selector for the webinar demo."""
+"""In-memory ``/agent-model`` selector."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ def apply_slash_command(*, user_id: str, text: str | None) -> str:
             suffix = "  _(your default)_" if option.id == current else ""
             lines.append(f"• *{option.label}* — `{SLASH_COMMAND} {alias}`{suffix}")
         lines.append(
-            "New threads use your default. Selections reset when the demo restarts."
+            "New threads use your default. Selections reset when the process restarts."
         )
         return "\n".join(lines)
     if choice in MODELS:
